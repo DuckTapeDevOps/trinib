@@ -21,11 +21,19 @@ jobs:
     timeout-minutes: 5
     
     steps:
+      - name: Get organization owners
+        id: get-owners
+        run: |
+          owners=$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -s "https://api.github.com/orgs/DuckTapeDevOps/members?role=admin" | \
+            jq -r '.[].login' | head -1)
+          echo "::set-output name=owner::$owners"
+        shell: bash
       # generates a snake game from a github user (<github_user_name>) contributions graph, output a svg animation at <svg_out_path>
       - name: generate github-contribution-grid-snake.svg
         uses: Platane/snk@v3
         with:
-          github_user_name: ${{ github.repository_owner }}
+          github_user_name: ${{ steps.get-owners.outputs.owner }}
           outputs: |
             dist/github-contribution-grid-snake.svg
             dist/github-snake-dark.svg?palette=github-dark
